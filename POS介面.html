@@ -164,8 +164,7 @@ input:focus{outline:none;border-color:var(--ac-line)}
         <span class="xgrp"><span class="hint">Esc</span><button class="xbtn" onclick="closeAct()" aria-label="關閉">✕</button></span></div>
       <button id="btnSettle" class="act pri hd" onclick="actSettle()">💰 <span>完成結帳 <span style="opacity:.75;margin-left:4px" id="settleAmt"></span></span></button>
       <button class="act" onclick="actReentry()">🔄 <span>重入 <span class="hint" style="margin-left:4px">再報一次</span></span></button>
-      <button class="act" onclick="actTx()">🧾 <span>交易明細 <span class="hint" style="margin-left:4px">單號查詢</span></span></button>
-      <button class="act" onclick="actEdit()">✏️ <span>更改折扣 <span class="hint" style="margin-left:4px">最後一筆</span></span></button>
+      <button class="act" onclick="actTx()">🧾 <span>交易明細 <span class="hint" style="margin-left:4px">單號查詢 · 逐筆改折扣</span></span></button>
       <button class="act dgr" onclick="askCancel()" style="margin-bottom:0">✕ <span id="cancelLabel">取消報名</span></button>
     </div>
   </div>
@@ -195,8 +194,8 @@ input:focus{outline:none;border-color:var(--ac-line)}
   <b>怎麼試</b>：先按虛線的「開桌」選一個模板、微調名稱與時間 → 點進桌卡 → 按「新增玩家」報名。<br>
   <b>掛單</b>：報名時按「先掛單」，這筆會標成待收、不計入已收金額；玩家錢帶來後點那一列按「完成結帳」。<br>
   <b>折扣</b>：<b>服務費半價</b>一鍵套用（金額自動帶入）·<b>折價券</b>／<b>扣點數</b>點了才輸金額；可複選，應收自動算、唯讀。<br>
-  <b>異動</b>：點玩家任一列可重入、看交易明細、改折扣、取消。<br>
-  <b>單號</b>：每筆報名／重入都有獨立<b>交易單號</b>與時間（如 <code>20260721-0003</code>），列上顯示「重入 ×N＋累計金額」，點<b>交易明細</b>可逐筆查詢追溯。<br>
+  <b>異動</b>：點玩家任一列可重入、看交易明細、取消。<br>
+  <b>單號</b>：每筆報名／重入都有獨立<b>交易單號</b>與時間（如 <code>20260721-0003</code>），列上顯示「重入 ×N＋累計金額」。<b>改折扣</b>進<b>交易明細</b>、點該筆的 ✏️ 逐筆修改。<br>
   <b>鍵盤</b>：<code>N</code> 新增 · 打完編號按 <code>Enter</code> 跳到折扣 · <code>1</code>／<code>2</code>／<code>3</code> 切換折扣 · <code>Enter</code> 送出 · <code>Esc</code> 關閉。<br>
   <span style="color:var(--tx3)">這是操作流程的示意，不是真的系統，資料不會存下來。試完請把覺得卡住、奇怪、或少了什麼的地方記下來。</span>
 </div>
@@ -207,7 +206,7 @@ input:focus{outline:none;border-color:var(--ac-line)}
   var TPL=[{n:'1200 限時錦標賽',fee:1200,svc:200,d:'8 分盲·可重入'},{n:'3400 限時錦標賽',fee:3400,svc:400,d:'10 分盲·可重入'},
            {n:'6600 限時錦標賽',fee:6600,svc:600,d:'12 分盲·可重入'},{n:'11000 限時錦標賽',fee:11000,svc:1000,d:'15 分盲·可重入'}];
   var MEMBERS={'107654':'Leon','100001':'Amy 陳','100025':'阿宏','108800':'Kevin','107001':'Sara 林'};
-  var tables=[],cur=-1,pick=-1,mode='new',editIdx=-1,actIdx=-1,reIdx=-1,seq=0;
+  var tables=[],cur=-1,pick=-1,mode='new',editIdx=-1,editEIdx=-1,actIdx=-1,reIdx=-1,seq=0;
   // 每筆買入＝一張獨立交易（單號＋時間），可追溯查詢
   function z2(n){return(n<10?'0':'')+n}
   function genNo(){seq++;var d=new Date();return d.getFullYear()+z2(d.getMonth()+1)+z2(d.getDate())+'-'+('000'+seq).slice(-4);}
@@ -290,20 +289,24 @@ input:focus{outline:none;border-color:var(--ac-line)}
   window.closeAct=function(){$('actLayer').classList.add('hd')};
   window.actSettle=function(){var p=tables[cur].players[actIdx];p.entries.forEach(function(e){e.hold=false});closeAct();renderPlayers();};
   window.actReentry=function(){reIdx=actIdx;var p=tables[cur].players[actIdx];closeAct();mode='reentry';openCashWith(p.id,'重入報名');};
-  window.actTx=function(){
-    var p=tables[cur].players[actIdx];closeAct();
+  function showTx(){
+    var p=tables[cur].players[actIdx];
     $('txTitle').textContent='交易明細 · 會員 '+p.id+(p.name?' '+p.name:'');
-    $('txList').innerHTML=p.entries.map(function(e){
-      return '<div style="display:flex;justify-content:space-between;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line)">'
+    $('txList').innerHTML=p.entries.map(function(e,ei){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line)">'
         +'<div><div style="font-family:var(--mono);font-size:12px;color:var(--tx2)">'+e.no+'</div>'
         +'<div style="font-size:12.5px;margin-top:3px">'+e.kind+(e.disc.length?' · '+e.disc.join('、'):'')+(e.hold?' <span class="badge warn">掛單待收</span>':'')+'</div>'
         +'<div class="hint" style="margin-top:2px">'+e.ts+'</div></div>'
-        +'<div style="font-weight:600;font-family:var(--mono)'+(e.hold?';color:var(--wn)':'')+'">'+e.amount.toLocaleString()+'</div></div>';}).join('');
+        +'<div style="display:flex;align-items:center;gap:8px">'
+        +'<div style="font-weight:600;font-family:var(--mono)'+(e.hold?';color:var(--wn)':'')+'">'+e.amount.toLocaleString()+'</div>'
+        +'<button class="xbtn" onclick="txEdit('+ei+')" aria-label="改折扣" title="改折扣">✏️</button></div></div>';}).join('');
     $('txLayer').classList.remove('hd');};
+  window.actTx=function(){closeAct();showTx();};
   window.closeTx=function(){$('txLayer').classList.add('hd')};
-  window.actEdit=function(){
-    var p=tables[cur].players[actIdx],e=p.entries[p.entries.length-1];closeAct();mode='edit';editIdx=actIdx;
-    openCashWith(p.id,'更改折扣');
+  window.txEdit=function(ei){
+    closeTx();mode='edit';editIdx=actIdx;editEIdx=ei;
+    var e=tables[cur].players[actIdx].entries[ei];
+    openCashWith(tables[cur].players[actIdx].id,'更改折扣 · '+e.no);
     document.querySelectorAll('#step2 .chip').forEach(function(c){
       var n=c.querySelector('.cn').textContent;
       if(e.disc.indexOf(n)>=0){c.classList.add('on');
@@ -358,17 +361,18 @@ input:focus{outline:none;border-color:var(--ac-line)}
     var due=Math.max(0,fee-d);$('due').textContent=due.toLocaleString();return due;};
 
   function commit(hold){
-    var due=calc(),names=[];
+    var due=calc(),names=[],wasEdit=(mode==='edit');
     document.querySelectorAll('#step2 .chip.on').forEach(function(c){names.push(c.querySelector('.cn').textContent)});
     var id=$('mId').value.trim()||'—',name=MEMBERS[id]||'';
     var detail={cp:num('vCp'),pt:num('vPt')};
-    if(mode==='edit'){var p=tables[cur].players[editIdx],e=p.entries[p.entries.length-1];
+    if(mode==='edit'){var p=tables[cur].players[editIdx],e=p.entries[editEIdx];
       e.amount=due;e.disc=names;e.detail=detail;p.name=name;}
     else if(mode==='reentry'){tables[cur].players[reIdx].entries.push(
       {no:genNo(),ts:tstamp(),kind:'重入',amount:due,disc:names,detail:detail,hold:hold});}
     else tables[cur].players.push({id:id,name:name,entries:[
       {no:genNo(),ts:tstamp(),kind:'報名',amount:due,disc:names,detail:detail,hold:hold}]});
-    closeCash();renderPlayers();mode='new';}
+    closeCash();renderPlayers();mode='new';
+    if(wasEdit)showTx();}
   window.doReg=function(){commit(false)};
   window.doHold=function(){commit(true)};
 

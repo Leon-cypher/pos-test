@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>報名流程原型 — THE ONE POKER</title>
+<style>
+:root{
+  --bg:#12130f; --surf:#1b1c18; --surf2:#232420; --line:#33352e; --line2:#43463c;
+  --tx:#eceadf; --tx2:#a8a89c; --tx3:#75776b;
+  --ac:#c8a951; --ac-bg:rgba(200,169,81,.13); --ac-line:rgba(200,169,81,.45);
+  --wn:#d9a441; --wn-bg:rgba(217,164,65,.12); --wn-line:rgba(217,164,65,.4);
+  --er:#d47b6a; --er-bg:rgba(212,123,106,.12); --er-line:rgba(212,123,106,.4);
+  --mono:ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;
+  min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px 16px;
+  background-image:radial-gradient(ellipse at 50% -10%,rgba(200,169,81,.07),transparent 60%)}
+.shell{width:100%;max-width:880px}
+.head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;padding:0 3px}
+.head h1{font-size:16px;font-weight:600;letter-spacing:.02em}
+.head .sub{font-size:12px;color:var(--tx3)}
+.dk{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+  min-height:500px;position:relative;overflow:hidden}
+button{font-family:inherit;color:var(--tx);background:var(--surf2);border:1px solid var(--line2);
+  border-radius:8px;cursor:pointer;transition:border-color .12s,background .12s}
+button:hover{border-color:var(--tx3)}
+input{font-family:inherit;background:var(--bg);color:var(--tx);border:1px solid var(--line2);
+  border-radius:8px;padding:0 10px;height:34px;font-size:13px;width:100%}
+input:focus{outline:none;border-color:var(--ac-line)}
+.pri{background:var(--ac-bg);border-color:var(--ac-line);color:var(--ac)}
+.pri:hover{border-color:var(--ac)}
+.tbl{background:var(--surf2);border:1px solid var(--line);border-radius:11px;padding:13px 14px;cursor:pointer;transition:border-color .12s,transform .12s}
+.tbl:hover{border-color:var(--ac-line);transform:translateY(-1px)}
+.newtbl{border:1px dashed var(--line2);background:transparent;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:5px;color:var(--tx2);min-height:96px}
+.newtbl:hover{color:var(--ac);border-color:var(--ac-line);transform:none}
+.tpl{border:1px solid var(--line2);border-radius:9px;padding:10px 12px;cursor:pointer;background:var(--bg);transition:all .12s}
+.tpl:hover{border-color:var(--tx3)}
+.tpl.on{background:var(--ac-bg);border-color:var(--ac-line)}
+.tpl.on .tn,.tpl.on .td{color:var(--ac)}
+.tn{font-size:13px;font-weight:500}
+.td{font-size:11px;color:var(--tx3);margin-top:2px}
+.chip{position:relative;border:1px solid var(--line2);border-radius:9px;padding:9px 12px;cursor:pointer;
+  background:var(--surf2);text-align:left;transition:all .12s}
+.chip:hover{border-color:var(--tx3)}
+.chip.on{background:var(--ac-bg);border-color:var(--ac-line)}
+.chip .cn{display:block;font-size:13px}
+.chip.on .cn{color:var(--ac)}
+.chip .amt{display:block;font-size:11px;color:var(--tx3);margin-top:2px}
+.chip.on .amt{color:var(--ac)}
+.kb{position:absolute;top:5px;right:6px;font-size:10px;color:var(--tx3);font-family:var(--mono)}
+.step{border-radius:9px;padding:3px;transition:box-shadow .15s}
+.step.active{box-shadow:0 0 0 2px var(--ac-line)}
+.prow{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);
+  padding:9px 11px;cursor:pointer;transition:background .12s}
+.prow:hover{background:var(--surf2)}
+.prow.hold{background:var(--wn-bg)}
+.act{display:flex;align-items:center;gap:9px;width:100%;height:44px;padding:0 15px;background:var(--surf2);
+  border:1px solid var(--line2);border-radius:10px;font-size:13.5px;cursor:pointer;text-align:left;margin-bottom:9px}
+.act.dgr:hover{border-color:var(--er-line);color:var(--er)}
+.lay{position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px);
+  display:flex;align-items:center;justify-content:center;padding:16px;z-index:5}
+.card{background:var(--surf2);border:1px solid var(--line2);border-radius:13px;width:100%;padding:20px;max-height:100%;overflow:auto}
+.hd{display:none!important}
+.lbl{display:block;font-size:12px;color:var(--tx2);margin-bottom:5px}
+.hint{font-size:11px;color:var(--tx3);font-family:var(--mono)}
+.badge{font-size:10.5px;border:1px solid var(--line2);border-radius:5px;padding:1px 6px;color:var(--tx3);margin-left:6px;white-space:nowrap}
+.badge.warn{border-color:var(--wn-line);color:var(--wn);background:var(--wn-bg)}
+.note{margin-top:14px;padding:13px 15px;border:1px solid var(--line);border-radius:11px;
+  background:var(--surf);font-size:12.5px;color:var(--tx2);line-height:1.75}
+.note b{color:var(--tx);font-weight:600}
+.note code{font-family:var(--mono);background:var(--surf2);border:1px solid var(--line2);
+  border-radius:4px;padding:1px 5px;font-size:11.5px;color:var(--ac)}
+.xgrp{display:flex;align-items:center;gap:7px}
+.xbtn{width:30px;height:30px;padding:0;border:0;background:transparent;color:var(--tx3);
+  font-size:17px;line-height:1;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.xbtn:hover{background:var(--surf);color:var(--tx);border:0}
+.mhit{margin-top:6px;font-size:12px;padding:5px 9px;border-radius:7px;border:1px solid var(--line2);color:var(--tx2)}
+.mhit.ok{color:var(--ac);border-color:var(--ac-line);background:var(--ac-bg)}
+.mhit.new{color:var(--wn);border-color:var(--wn-line);background:var(--wn-bg)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="head">
+    <h1>報名流程原型</h1>
+    <span class="sub">試用版 · 資料不會儲存，重新整理即歸零</span>
+  </div>
+
+<div class="dk" id="root" tabindex="-1">
+  <div id="deskView">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:500">賽事桌面</div><span id="deskCount" class="hint">0 桌</span></div>
+    <div id="deskGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px"></div>
+  </div>
+
+  <div id="playerView" class="hd">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+      <button onclick="toDesk()" aria-label="返回" style="height:32px;width:34px">←</button>
+      <div style="flex:1"><div id="pvName" style="font-weight:500"></div>
+      <div id="pvMeta" style="font-size:12px;color:var(--tx2);margin-top:2px"></div></div>
+      <button class="pri" onclick="openCash()" style="height:34px;padding:0 15px;font-size:13px">新增玩家 <span style="opacity:.6;font-family:var(--mono);font-size:11px">N</span></button>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:0 11px 6px;font-size:12px;color:var(--tx2);border-bottom:1px solid var(--line2)">
+      <span>玩家 <span class="hint" style="margin-left:6px">點一列做異動</span></span><span>金額</span></div>
+    <div id="plist"></div>
+  </div>
+
+  <div id="createLayer" class="lay hd">
+    <div class="card" style="max-width:410px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+        <div style="font-size:15px;font-weight:500">開桌</div>
+        <span class="xgrp"><span class="hint">Esc</span><button class="xbtn" onclick="closeCreate()" aria-label="關閉">✕</button></span></div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:7px">選擇模板</div>
+      <div id="tplGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:15px"></div>
+      <div id="tuneWrap" class="hd">
+        <div style="margin-bottom:11px"><label class="lbl" for="tName">賽事名稱</label><input id="tName" type="text"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:15px">
+          <div><label class="lbl" for="tTime">開賽時間</label><input id="tTime" type="text" value="19:00"></div>
+          <div><label class="lbl" for="tCut">截止買入</label><input id="tCut" type="text" value="21:00"></div></div>
+        <button class="pri" onclick="doCreate()" style="width:100%;height:38px;font-size:13px">開桌</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="cashLayer" class="lay hd">
+    <div class="card" style="max-width:390px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px">
+        <div><div id="cashTitle" style="font-size:15px;font-weight:500">新增玩家</div>
+        <div id="cashSub" style="font-size:12px;color:var(--tx2);margin-top:2px"></div></div>
+        <span class="xgrp"><span class="hint">Esc</span><button class="xbtn" onclick="closeCash()" aria-label="關閉">✕</button></span></div>
+      <div id="step1" class="step" style="margin-bottom:13px">
+        <label class="lbl" for="mId">會員編號 <span class="hint">Enter 下一步</span></label>
+        <input id="mId" type="text" placeholder="輸入會員編號" oninput="lookup()">
+        <div id="mHit" class="hd mhit"></div></div>
+      <div id="step2" class="step">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px">
+          <span style="font-size:12px;color:var(--tx2)">折扣 <span class="hint">可複選</span></span><span class="hint">1–3 切換</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div class="chip" data-kind="svc" onclick="tog(this)"><span class="kb">1</span><span class="cn">服務費半價</span><span class="amt" id="svcAmt">−0</span></div>
+          <div class="chip" data-kind="input" data-tgt="vCp" onclick="tog(this)"><span class="kb">2</span><span class="cn">折價券</span><span class="amt">自訂</span></div>
+          <div class="chip" data-kind="input" data-tgt="vPt" onclick="tog(this)"><span class="kb">3</span><span class="cn">扣點數</span><span class="amt">抵扣</span></div></div>
+        <div id="cpArea" class="hd" style="margin-top:9px;display:grid;gap:8px">
+          <div id="row-vCp" class="hd"><label class="lbl" for="vCp">折價券面額</label><input id="vCp" type="number" oninput="calc()"></div>
+          <div id="row-vPt" class="hd"><label class="lbl" for="vPt">扣點數 <span class="hint">1 點 = 1 元</span></label><input id="vPt" type="number" oninput="calc()"></div></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);
+        border:1px solid var(--line);border-radius:9px;padding:12px 14px;margin:13px 0">
+        <span style="font-size:13px;color:var(--tx2)">應收</span><span id="due" style="font-size:23px;font-weight:600;font-family:var(--mono)">0</span></div>
+      <div style="display:flex;gap:9px">
+        <button id="holdBtn" onclick="doHold()" style="flex:1;height:40px;font-size:13px">先掛單</button>
+        <button id="cashBtn" class="pri" onclick="doReg()" style="flex:1.4;height:40px;font-size:13px">收款完成 <span style="opacity:.6;font-family:var(--mono);font-size:11px">↵</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="actLayer" class="lay hd">
+    <div class="card" style="max-width:340px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px">
+        <div><div id="actName" style="font-size:15px;font-weight:500"></div>
+        <div id="actSub" style="font-size:12px;color:var(--tx2);margin-top:3px"></div></div>
+        <span class="xgrp"><span class="hint">Esc</span><button class="xbtn" onclick="closeAct()" aria-label="關閉">✕</button></span></div>
+      <button id="btnSettle" class="act pri hd" onclick="actSettle()">💰 <span>完成結帳 <span style="opacity:.75;margin-left:4px" id="settleAmt"></span></span></button>
+      <button class="act" onclick="actReentry()">🔄 <span>重入 <span class="hint" style="margin-left:4px">再報一次</span></span></button>
+      <button class="act" onclick="actTx()">🧾 <span>交易明細 <span class="hint" style="margin-left:4px">單號查詢</span></span></button>
+      <button class="act" onclick="actEdit()">✏️ <span>更改折扣 <span class="hint" style="margin-left:4px">最後一筆</span></span></button>
+      <button class="act dgr" onclick="askCancel()" style="margin-bottom:0">✕ <span id="cancelLabel">取消報名</span></button>
+    </div>
+  </div>
+
+  <div id="confirmLayer" class="lay hd" style="z-index:6">
+    <div class="card" style="max-width:330px">
+      <div style="font-size:15px;font-weight:500;margin-bottom:9px">確認取消報名？</div>
+      <div id="confirmMsg" style="font-size:13px;color:var(--tx2);line-height:1.7;margin-bottom:19px"></div>
+      <div style="display:flex;gap:9px">
+        <button onclick="closeConfirm()" style="flex:1;height:38px;font-size:13px">返回</button>
+        <button onclick="doCancel()" style="flex:1;height:38px;font-size:13px;background:var(--er-bg);border-color:var(--er-line);color:var(--er)">確定取消</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="txLayer" class="lay hd" style="z-index:6">
+    <div class="card" style="max-width:420px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+        <div id="txTitle" style="font-size:15px;font-weight:500">交易明細</div>
+        <span class="xgrp"><span class="hint">Esc</span><button class="xbtn" onclick="closeTx()" aria-label="關閉">✕</button></span></div>
+      <div id="txList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <b>怎麼試</b>：先按虛線的「開桌」選一個模板、微調名稱與時間 → 點進桌卡 → 按「新增玩家」報名。<br>
+  <b>掛單</b>：報名時按「先掛單」，這筆會標成待收、不計入已收金額；玩家錢帶來後點那一列按「完成結帳」。<br>
+  <b>折扣</b>：<b>服務費半價</b>一鍵套用（金額自動帶入）·<b>折價券</b>／<b>扣點數</b>點了才輸金額；可複選，應收自動算、唯讀。<br>
+  <b>異動</b>：點玩家任一列可重入、看交易明細、改折扣、取消。<br>
+  <b>單號</b>：每筆報名／重入都有獨立<b>交易單號</b>與時間（如 <code>20260721-0003</code>），列上顯示「重入 ×N＋累計金額」，點<b>交易明細</b>可逐筆查詢追溯。<br>
+  <b>鍵盤</b>：<code>N</code> 新增 · 打完編號按 <code>Enter</code> 跳到折扣 · <code>1</code>／<code>2</code>／<code>3</code> 切換折扣 · <code>Enter</code> 送出 · <code>Esc</code> 關閉。<br>
+  <span style="color:var(--tx3)">這是操作流程的示意，不是真的系統，資料不會存下來。試完請把覺得卡住、奇怪、或少了什麼的地方記下來。</span>
+</div>
+</div>
+
+<script>
+(function(){
+  var TPL=[{n:'1200 限時錦標賽',fee:1200,svc:200,d:'8 分盲·可重入'},{n:'3400 限時錦標賽',fee:3400,svc:400,d:'10 分盲·可重入'},
+           {n:'6600 限時錦標賽',fee:6600,svc:600,d:'12 分盲·可重入'},{n:'11000 限時錦標賽',fee:11000,svc:1000,d:'15 分盲·可重入'}];
+  var MEMBERS={'107654':'Leon','100001':'Amy 陳','100025':'阿宏','108800':'Kevin','107001':'Sara 林'};
+  var tables=[],cur=-1,pick=-1,mode='new',editIdx=-1,actIdx=-1,reIdx=-1,seq=0;
+  // 每筆買入＝一張獨立交易（單號＋時間），可追溯查詢
+  function z2(n){return(n<10?'0':'')+n}
+  function genNo(){seq++;var d=new Date();return d.getFullYear()+z2(d.getMonth()+1)+z2(d.getDate())+'-'+('000'+seq).slice(-4);}
+  function tstamp(){var d=new Date();return z2(d.getHours())+':'+z2(d.getMinutes())+':'+z2(d.getSeconds());}
+  function reCount(p){var n=0;p.entries.forEach(function(e){if(e.kind==='重入')n++});return n;}
+  function collected(p){return p.entries.reduce(function(a,e){return a+(e.hold?0:e.amount)},0);}
+  function pending(p){return p.entries.reduce(function(a,e){return a+(e.hold?e.amount:0)},0);}
+  function isHold(p){return p.entries.some(function(e){return e.hold})}
+  var $=function(i){return document.getElementById(i)};
+  var open=function(){
+    if(!$('confirmLayer').classList.contains('hd'))return'confirm';
+    if(!$('txLayer').classList.contains('hd'))return'tx';
+    if(!$('cashLayer').classList.contains('hd'))return'cash';
+    if(!$('actLayer').classList.contains('hd'))return'act';
+    if(!$('createLayer').classList.contains('hd'))return'create';
+    return null;};
+  function setStage(s){
+    $('step1').classList.toggle('active',s===1);$('step2').classList.toggle('active',s===2);
+    if(s===1)setTimeout(function(){$('mId').focus()},20);else{$('mId').blur();$('root').focus();}}
+
+  function renderDesk(){
+    var h='';
+    tables.forEach(function(t,i){
+      var buyins=t.players.reduce(function(a,p){return a+p.entries.filter(function(e){return !e.hold}).length},0),hold=t.players.filter(isHold).length;
+      h+='<div class="tbl" onclick="enter('+i+')"><div style="font-weight:500;font-size:13px">'+t.n+'</div>'
+       +'<div style="font-size:11.5px;color:var(--tx2);margin-top:4px">'+t.time+' 開 · 買入至 '+t.cut+'</div>'
+       +'<div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:9px">'
+       +'<span style="font-size:21px;font-weight:600;font-family:var(--mono)">'+buyins+'<span style="font-size:11.5px;color:var(--tx3);font-weight:400;font-family:var(--sans)"> 人次</span></span>'
+       +(hold?'<span class="badge warn">掛單 '+hold+'</span>':'<span style="font-size:11.5px;color:var(--tx3)">'+t.fee.toLocaleString()+'</span>')
+       +'</div></div>';});
+    h+='<div class="tbl newtbl" onclick="openCreate()"><span style="font-size:19px">＋</span><span style="font-size:12.5px">開桌</span></div>';
+    $('deskGrid').innerHTML=h;$('deskCount').textContent=tables.length+' 桌';}
+
+  window.openCreate=function(){
+    pick=-1;$('tuneWrap').classList.add('hd');
+    $('tplGrid').innerHTML=TPL.map(function(t,i){
+      return '<div class="tpl" onclick="pickTpl('+i+')"><div class="tn">'+t.n+'</div><div class="td">'+t.d+' · '+t.fee.toLocaleString()+'</div></div>';}).join('');
+    $('createLayer').classList.remove('hd');};
+  window.closeCreate=function(){$('createLayer').classList.add('hd')};
+  window.pickTpl=function(i){
+    pick=i;document.querySelectorAll('.tpl').forEach(function(e,k){e.classList.toggle('on',k===i)});
+    $('tName').value='#'+(tables.length+1)+' '+TPL[i].n;$('tuneWrap').classList.remove('hd');
+    setTimeout(function(){$('tName').focus();$('tName').select()},30);};
+  window.doCreate=function(){
+    if(pick<0)return;
+    tables.push({n:$('tName').value.trim()||TPL[pick].n,fee:TPL[pick].fee,svc:TPL[pick].svc,time:$('tTime').value||'—',cut:$('tCut').value||'—',players:[]});
+    closeCreate();renderDesk();};
+  window.enter=function(i){cur=i;renderPlayers();$('deskView').classList.add('hd');$('playerView').classList.remove('hd')};
+  window.toDesk=function(){$('playerView').classList.add('hd');$('deskView').classList.remove('hd');renderDesk()};
+
+  function renderPlayers(){
+    var t=tables[cur];
+    var buyins=0,got=0,holdN=0,pend=0;
+    t.players.forEach(function(p){p.entries.forEach(function(e){if(e.hold){pend+=e.amount}else{buyins++;got+=e.amount}});if(isHold(p))holdN++;});
+    $('pvName').textContent=t.n;
+    $('pvMeta').textContent=t.time+' 開賽 · 已收 '+buyins+' 人次 / '+got.toLocaleString()
+      +(holdN?' · 掛單 '+holdN+' 筆待收 '+pend.toLocaleString():'');
+    var el=$('plist');
+    if(!t.players.length){el.innerHTML='<div style="color:var(--tx3);font-size:13px;padding:22px 0;text-align:center">還沒有玩家，按 N 或右上角新增</div>';return}
+    el.innerHTML=t.players.map(function(p,i){
+      var last=p.entries[p.entries.length-1],rc=reCount(p),hold=isHold(p);
+      var tag=last.disc.length?'<span class="badge">'+last.disc.join('、')+'</span>':'';
+      var re=rc?'<span class="badge">重入 ×'+rc+'</span>':'';
+      var hb=hold?'<span class="badge warn">掛單待收</span>':'';
+      var nm=p.name?' <span style="color:var(--tx2)">'+p.name+'</span>':'';
+      var got=collected(p),amt=got||pending(p),wn=got===0&&hold;
+      return '<div class="prow'+(hold?' hold':'')+'" onclick="openAct('+i+')"><span style="font-size:13px">'+(i+1)+'. 會員 '+p.id+nm+hb+re+tag+'</span>'
+        +'<span style="display:flex;align-items:center;gap:9px"><span style="font-weight:600;font-family:var(--mono)'+(wn?';color:var(--wn)':'')+'">'+amt.toLocaleString()+'</span>'
+        +'<span style="color:var(--tx3);font-size:14px">⋮</span></span></div>';}).join('');}
+
+  window.openAct=function(i){
+    actIdx=i;var p=tables[cur].players[i],rc=reCount(p),hold=isHold(p),got=collected(p),pend=pending(p);
+    $('actName').textContent='會員 '+p.id+(p.name?' · '+p.name:'');
+    var parts=[];if(got)parts.push('已收 '+got.toLocaleString());if(pend)parts.push('掛單待收 '+pend.toLocaleString());if(rc)parts.push('重入 ×'+rc);
+    $('actSub').textContent=parts.join(' · ')||'—';
+    $('btnSettle').classList.toggle('hd',!hold);
+    $('settleAmt').textContent=hold?pend.toLocaleString():'';
+    $('cancelLabel').textContent=(hold&&got===0)?'刪除掛單':'取消報名';
+    $('actLayer').classList.remove('hd');};
+  window.closeAct=function(){$('actLayer').classList.add('hd')};
+  window.actSettle=function(){var p=tables[cur].players[actIdx];p.entries.forEach(function(e){e.hold=false});closeAct();renderPlayers();};
+  window.actReentry=function(){reIdx=actIdx;var p=tables[cur].players[actIdx];closeAct();mode='reentry';openCashWith(p.id,'重入報名');};
+  window.actTx=function(){
+    var p=tables[cur].players[actIdx];closeAct();
+    $('txTitle').textContent='交易明細 · 會員 '+p.id+(p.name?' '+p.name:'');
+    $('txList').innerHTML=p.entries.map(function(e){
+      return '<div style="display:flex;justify-content:space-between;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line)">'
+        +'<div><div style="font-family:var(--mono);font-size:12px;color:var(--tx2)">'+e.no+'</div>'
+        +'<div style="font-size:12.5px;margin-top:3px">'+e.kind+(e.disc.length?' · '+e.disc.join('、'):'')+(e.hold?' <span class="badge warn">掛單待收</span>':'')+'</div>'
+        +'<div class="hint" style="margin-top:2px">'+e.ts+'</div></div>'
+        +'<div style="font-weight:600;font-family:var(--mono)'+(e.hold?';color:var(--wn)':'')+'">'+e.amount.toLocaleString()+'</div></div>';}).join('');
+    $('txLayer').classList.remove('hd');};
+  window.closeTx=function(){$('txLayer').classList.add('hd')};
+  window.actEdit=function(){
+    var p=tables[cur].players[actIdx],e=p.entries[p.entries.length-1];closeAct();mode='edit';editIdx=actIdx;
+    openCashWith(p.id,'更改折扣');
+    document.querySelectorAll('#step2 .chip').forEach(function(c){
+      var n=c.querySelector('.cn').textContent;
+      if(e.disc.indexOf(n)>=0){c.classList.add('on');
+        if(c.dataset.kind==='input'){var k=c.dataset.tgt;$('cpArea').classList.remove('hd');$('row-'+k).classList.remove('hd');
+          $(k).value=(e.detail&&e.detail[k==='vCp'?'cp':'pt'])||'';}}});
+    calc();};
+  window.askCancel=function(){
+    var p=tables[cur].players[actIdx],rc=reCount(p),got=collected(p);
+    $('confirmMsg').innerHTML=(isHold(p)&&got===0)
+      ? '會員 '+p.id+' 的掛單將被刪除。<br>此單尚未收款，不影響帳務。'
+      : '會員 '+p.id+(rc?'（含重入 '+rc+' 次）':'')+' 已收 <strong style="color:var(--tx)">'+got.toLocaleString()+'</strong>。<br>取消後需退還此金額，'+p.entries.length+' 筆交易將一併作廢並記入帳務異動。';
+    $('confirmLayer').classList.remove('hd');};
+  window.closeConfirm=function(){$('confirmLayer').classList.add('hd')};
+  window.doCancel=function(){tables[cur].players.splice(actIdx,1);closeConfirm();closeAct();renderPlayers();};
+
+  function openCashWith(id,title){
+    document.querySelectorAll('#step2 .chip').forEach(function(c){c.classList.remove('on')});
+    ['vCp','vPt'].forEach(function(x){$(x).value='';$('row-'+x).classList.add('hd')});
+    $('cpArea').classList.add('hd');
+    $('svcAmt').textContent='−'+Math.round((tables[cur]?tables[cur].svc:0)/2).toLocaleString();
+    $('mId').value=id||'';lookup();
+    $('cashTitle').textContent=title;
+    $('holdBtn').classList.toggle('hd',mode==='edit');
+    $('cashBtn').innerHTML=(mode==='edit'?'儲存變更':'收款完成')+' <span style="opacity:.6;font-family:var(--mono);font-size:11px">↵</span>';
+    $('cashSub').textContent=tables[cur].n+' · '+tables[cur].fee.toLocaleString();
+    calc();$('cashLayer').classList.remove('hd');setStage(id?2:1);}
+  window.openCash=function(){mode='new';openCashWith('','新增玩家')};
+  window.closeCash=function(){$('cashLayer').classList.add('hd')};
+
+  function num(id){var e=$(id);return parseInt(e&&e.value,10)||0;}
+  window.tog=function(c){
+    if(!c||c.classList.contains('pm'))return;
+    c.classList.toggle('on');
+    if(c.dataset.kind==='input'){
+      var on=c.classList.contains('on'),row=$('row-'+c.dataset.tgt),inp=$(c.dataset.tgt);
+      row.classList.toggle('hd',!on);
+      if(!on)inp.value='';else setTimeout(function(){inp.focus()},20);
+      $('cpArea').classList.toggle('hd',!document.querySelectorAll('#step2 .chip.on[data-kind=input]').length);}
+    calc();};
+  window.lookup=function(){
+    var id=$('mId').value.trim(),el=$('mHit');
+    if(!id){el.className='hd mhit';el.textContent='';return;}
+    var n=MEMBERS[id];
+    if(n){el.className='mhit ok';el.textContent='✓ '+n;}
+    else{el.className='mhit new';el.textContent='＋ 查無此編號，將以現場來賓報名';}};
+  window.calc=function(){
+    var t=tables[cur],fee=t?t.fee:0,d=0;
+    document.querySelectorAll('#step2 .chip.on').forEach(function(c){
+      if(c.dataset.kind==='svc')d+=Math.round((t?t.svc:0)/2);
+      else if(c.dataset.kind==='input')d+=num(c.dataset.tgt);});
+    d=Math.min(d,fee);
+    var due=Math.max(0,fee-d);$('due').textContent=due.toLocaleString();return due;};
+
+  function commit(hold){
+    var due=calc(),names=[];
+    document.querySelectorAll('#step2 .chip.on').forEach(function(c){names.push(c.querySelector('.cn').textContent)});
+    var id=$('mId').value.trim()||'—',name=MEMBERS[id]||'';
+    var detail={cp:num('vCp'),pt:num('vPt')};
+    if(mode==='edit'){var p=tables[cur].players[editIdx],e=p.entries[p.entries.length-1];
+      e.amount=due;e.disc=names;e.detail=detail;p.name=name;}
+    else if(mode==='reentry'){tables[cur].players[reIdx].entries.push(
+      {no:genNo(),ts:tstamp(),kind:'重入',amount:due,disc:names,detail:detail,hold:hold});}
+    else tables[cur].players.push({id:id,name:name,entries:[
+      {no:genNo(),ts:tstamp(),kind:'報名',amount:due,disc:names,detail:detail,hold:hold}]});
+    closeCash();renderPlayers();mode='new';}
+  window.doReg=function(){commit(false)};
+  window.doHold=function(){commit(true)};
+
+  $('root').addEventListener('keydown',function(e){
+    var o=open(),ae=document.activeElement;
+    if(e.key==='Escape'){if(o==='confirm')closeConfirm();else if(o==='tx')closeTx();else if(o==='cash')closeCash();else if(o==='act')closeAct();else if(o==='create')closeCreate();return;}
+    if(o==='confirm'||o==='tx')return;
+    if(o==='cash'){
+      var inAmt=ae.id==='vCp'||ae.id==='vPt';
+      if(e.key==='Enter'){e.preventDefault();
+        if(ae.id==='mId')setStage(2);else if(inAmt){ae.blur();$('root').focus();}else doReg();return;}
+      if(e.key>='1'&&e.key<='3'&&ae.id!=='mId'&&!inAmt){
+        var chips=document.querySelectorAll('#step2 .chip');
+        if(chips[+e.key-1]){e.preventDefault();tog(chips[+e.key-1]);}}
+      return;}
+    if(o==='create'){if(e.key==='Enter'&&pick>=0){e.preventDefault();doCreate();}return;}
+    if(!o&&(e.key==='n'||e.key==='N')&&!$('playerView').classList.contains('hd')){e.preventDefault();openCash();}});
+  renderDesk();
+})();
+</script>
+</body>
+</html>

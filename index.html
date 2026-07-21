@@ -78,6 +78,12 @@ input:focus{outline:none;border-color:var(--ac-line)}
 .xbtn{width:30px;height:30px;padding:0;border:0;background:transparent;color:var(--tx3);
   font-size:17px;line-height:1;border-radius:7px;display:flex;align-items:center;justify-content:center}
 .xbtn:hover{background:var(--surf);color:var(--tx);border:0}
+.trow{border:1px solid var(--line2);border-radius:9px;padding:9px 11px;cursor:pointer;background:var(--surf2);transition:border-color .12s,background .12s}
+.trow:hover{border-color:var(--tx3)}
+.trow.on{background:var(--ac-bg);border-color:var(--ac-line)}
+.trow.on .tnm{color:var(--ac)}
+.tadd{width:100%;border:1px dashed var(--line2);background:transparent;color:var(--tx2);border-radius:9px;padding:10px;font-size:13px;margin-top:2px}
+.tadd:hover{color:var(--ac);border-color:var(--ac-line)}
 .mhit{margin-top:6px;font-size:12px;padding:5px 9px;border-radius:7px;border:1px solid var(--line2);color:var(--tx2)}
 .mhit.ok{color:var(--ac);border-color:var(--ac-line);background:var(--ac-bg)}
 .mhit.new{color:var(--wn);border-color:var(--wn-line);background:var(--wn-bg)}
@@ -91,22 +97,27 @@ input:focus{outline:none;border-color:var(--ac-line)}
   </div>
 
 <div class="dk" id="root" tabindex="-1">
-  <div id="deskView">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:15px;font-weight:500">賽事桌面</div><span id="deskCount" class="hint">0 桌</span></div>
-    <div id="deskGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px"></div>
-  </div>
-
-  <div id="playerView" class="hd">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
-      <button onclick="toDesk()" aria-label="返回" style="height:32px;width:34px">←</button>
-      <div style="flex:1"><div id="pvName" style="font-weight:500"></div>
-      <div id="pvMeta" style="font-size:12px;color:var(--tx2);margin-top:2px"></div></div>
-      <button class="pri" onclick="openCash()" style="height:34px;padding:0 15px;font-size:13px">新增玩家 <span style="opacity:.6;font-family:var(--mono);font-size:11px">N</span></button>
+  <div style="display:flex;gap:16px;min-height:464px">
+    <div id="deskCol" style="width:232px;flex-shrink:0;border-right:1px solid var(--line);padding-right:16px;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px">
+        <div style="font-size:15px;font-weight:500">賽事</div><span id="deskCount" class="hint">0 桌</span></div>
+      <div id="deskList" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
-    <div style="display:flex;justify-content:space-between;padding:0 11px 6px;font-size:12px;color:var(--tx2);border-bottom:1px solid var(--line2)">
-      <span>玩家 <span class="hint" style="margin-left:6px">點一列做異動</span></span><span>金額</span></div>
-    <div id="plist"></div>
+
+    <div id="playerCol" style="flex:1;min-width:0">
+      <div id="pvEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:440px;color:var(--tx3);font-size:13px;text-align:center;line-height:1.9">
+        選擇左側賽事查看報名<br>或按「＋ 開桌」建立新賽事</div>
+      <div id="playerView" class="hd">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+          <div style="flex:1"><div id="pvName" style="font-weight:500"></div>
+          <div id="pvMeta" style="font-size:12px;color:var(--tx2);margin-top:2px"></div></div>
+          <button class="pri" onclick="openCash()" style="height:34px;padding:0 15px;font-size:13px">新增玩家 <span style="opacity:.6;font-family:var(--mono);font-size:11px">N</span></button>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:0 11px 6px;font-size:12px;color:var(--tx2);border-bottom:1px solid var(--line2)">
+          <span>玩家 <span class="hint" style="margin-left:6px">點一列做異動</span></span><span>金額</span></div>
+        <div id="plist"></div>
+      </div>
+    </div>
   </div>
 
   <div id="createLayer" class="lay hd">
@@ -191,7 +202,7 @@ input:focus{outline:none;border-color:var(--ac-line)}
 </div>
 
 <div class="note">
-  <b>怎麼試</b>：先按虛線的「開桌」選一個模板、微調名稱與時間 → 點進桌卡 → 按「新增玩家」報名。<br>
+  <b>怎麼試</b>：左欄按「＋ 開桌」選模板、微調名稱與時間 → 建立後右側直接顯示該賽事 → 按「新增玩家」報名。左欄可隨時點選切換賽事，不用返回。<br>
   <b>掛單</b>：報名時按「先掛單」，這筆會標成待收、不計入已收金額；玩家錢帶來後點那一列按「完成結帳」。<br>
   <b>折扣</b>：<b>服務費半價</b>一鍵套用（金額自動帶入）·<b>折價券</b>／<b>扣點數</b>點了才輸金額；可複選，應收自動算、唯讀。<br>
   <b>異動</b>：點玩家任一列可重入、看交易明細、取消。<br>
@@ -231,14 +242,13 @@ input:focus{outline:none;border-color:var(--ac-line)}
     var h='';
     tables.forEach(function(t,i){
       var buyins=t.players.reduce(function(a,p){return a+p.entries.filter(function(e){return !e.hold}).length},0),hold=t.players.filter(isHold).length;
-      h+='<div class="tbl" onclick="enter('+i+')"><div style="font-weight:500;font-size:13px">'+t.n+'</div>'
-       +'<div style="font-size:11.5px;color:var(--tx2);margin-top:4px">'+t.time+' 開 · 買入至 '+t.cut+'</div>'
-       +'<div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:9px">'
-       +'<span style="font-size:21px;font-weight:600;font-family:var(--mono)">'+buyins+'<span style="font-size:11.5px;color:var(--tx3);font-weight:400;font-family:var(--sans)"> 人次</span></span>'
-       +(hold?'<span class="badge warn">掛單 '+hold+'</span>':'<span style="font-size:11.5px;color:var(--tx3)">'+t.fee.toLocaleString()+'</span>')
+      h+='<div class="trow'+(i===cur?' on':'')+'" onclick="enter('+i+')"><div class="tnm" style="font-size:13px;font-weight:500">'+t.n+'</div>'
+       +'<div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:5px">'
+       +'<span style="font-size:11.5px;color:var(--tx2)">'+t.time+' · '+buyins+' 人次</span>'
+       +(hold?'<span class="badge warn">掛單 '+hold+'</span>':'<span style="font-size:11px;color:var(--tx3)">'+t.fee.toLocaleString()+'</span>')
        +'</div></div>';});
-    h+='<div class="tbl newtbl" onclick="openCreate()"><span style="font-size:19px">＋</span><span style="font-size:12.5px">開桌</span></div>';
-    $('deskGrid').innerHTML=h;$('deskCount').textContent=tables.length+' 桌';}
+    h+='<button class="tadd" onclick="openCreate()">＋ 開桌</button>';
+    $('deskList').innerHTML=h;$('deskCount').textContent=tables.length+' 桌';}
 
   window.openCreate=function(){
     pick=-1;$('tuneWrap').classList.add('hd');
@@ -253,12 +263,12 @@ input:focus{outline:none;border-color:var(--ac-line)}
   window.doCreate=function(){
     if(pick<0)return;
     tables.push({n:$('tName').value.trim()||TPL[pick].n,fee:TPL[pick].fee,svc:TPL[pick].svc,time:$('tTime').value||'—',cut:$('tCut').value||'—',players:[]});
-    closeCreate();renderDesk();};
-  window.enter=function(i){cur=i;renderPlayers();$('deskView').classList.add('hd');$('playerView').classList.remove('hd')};
-  window.toDesk=function(){$('playerView').classList.add('hd');$('deskView').classList.remove('hd');renderDesk()};
+    closeCreate();enter(tables.length-1);};
+  window.enter=function(i){cur=i;$('pvEmpty').classList.add('hd');$('playerView').classList.remove('hd');renderPlayers();};
 
   function renderPlayers(){
     var t=tables[cur];
+    renderDesk();   // 同步左欄人次／掛單與選中高亮
     var buyins=0,got=0,holdN=0,pend=0;
     t.players.forEach(function(p){p.entries.forEach(function(e){if(e.hold){pend+=e.amount}else{buyins++;got+=e.amount}});if(isHold(p))holdN++;});
     $('pvName').textContent=t.n;

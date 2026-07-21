@@ -18,7 +18,7 @@
 body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:14px;
   min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px 16px;
   background-image:radial-gradient(ellipse at 50% -10%,rgba(200,169,81,.07),transparent 60%)}
-.shell{width:100%;max-width:880px}
+.shell{width:100%;max-width:1180px}
 .head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;padding:0 3px}
 .head h1{font-size:16px;font-weight:600;letter-spacing:.02em}
 .head .sub{font-size:12px;color:var(--tx3)}
@@ -97,15 +97,15 @@ input:focus{outline:none;border-color:var(--ac-line)}
   </div>
 
 <div class="dk" id="root" tabindex="-1">
-  <div style="display:flex;gap:16px;min-height:464px">
-    <div id="deskCol" style="width:232px;flex-shrink:0;border-right:1px solid var(--line);padding-right:16px;display:flex;flex-direction:column">
+  <div style="display:flex;gap:20px;min-height:580px">
+    <div id="deskCol" style="width:280px;flex-shrink:0;border-right:1px solid var(--line);padding-right:20px;display:flex;flex-direction:column">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:11px">
         <div style="font-size:15px;font-weight:500">賽事</div><span id="deskCount" class="hint">0 桌</span></div>
       <div id="deskList" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
 
     <div id="playerCol" style="flex:1;min-width:0">
-      <div id="pvEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:440px;color:var(--tx3);font-size:13px;text-align:center;line-height:1.9">
+      <div id="pvEmpty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:560px;color:var(--tx3);font-size:13px;text-align:center;line-height:1.9">
         選擇左側賽事查看報名<br>或按「＋ 開桌」建立新賽事</div>
       <div id="playerView" class="hd">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
